@@ -83,11 +83,12 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_message = """
 🎉 *Welcome to CodePaste Payment Bot!*
 
-To buy credits:
-1. Pay via UPI to: `dharani3318s@oksbi`
-2. Send me a screenshot of your payment confirmation
-3. I'll generate a license key for you
-4. Enter the key in CodePaste app to get credits
+I verify payments and generate license keys for CodePaste.
+
+*How it works:*
+1. Send me a screenshot of your payment confirmation
+2. I'll verify the details and generate your license key
+3. Enter the key in CodePaste app to get credits
 
 *Credit Packages:*
 • ₹10 = 1,000 credits
@@ -102,27 +103,23 @@ Send /help for more information.
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Send help message when /help is issued"""
     help_message = """
-📖 *How to Use CodePaste Payment Bot*
+📖 *How to Verify Payment*
 
-*Step 1: Make Payment*
-Pay to UPI ID: `dharani3318s@oksbi`
-
-*Step 2: Send Screenshot*
-After payment, send me a clear screenshot showing:
+*Step 1: Send Screenshot*
+Send a clear screenshot of your payment showing:
 • Payment amount
 • UTR/Transaction ID
 • Sender name
 
-*Step 3: Get License Key*
-I'll process your screenshot and send you a license key.
+*Step 2: Get License Key*
+I'll verify the screenshot and send you a license key.
 ⏰ License keys expire in 5 minutes!
 
-*Step 4: Redeem in App*
+*Step 3: Redeem in App*
 Open CodePaste app → Buy Credits → Enter license key
 
 *Troubleshooting:*
 • Screenshot blurry? → I'll ask for manual review
-• License expired? → Contact support
 • Payment not detected? → Send clearer screenshot
 
 Need help? Contact: @Hex_April
