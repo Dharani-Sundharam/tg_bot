@@ -1,7 +1,5 @@
 python-telegram-bot
 pymongo
 python-dotenv
-Pillow
-pytesseract
-opencv-python-headless
 cryptography
+google-genai
