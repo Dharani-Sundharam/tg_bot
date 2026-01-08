@@ -158,12 +158,22 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         result = process_payment_screenshot(file_path)
         
         if not result['success']:
-            await processing_msg.edit_text(
-                "❌ Failed to process screenshot.\n\n"
-                f"Error: {result.get('error')}\n\n"
-                "Please send a clearer screenshot.\n"
-                "If the issue persists, contact: @Hex_April"
-            )
+            error_msg = result.get('error', '')
+            # Check for specific overload/server busy errors
+            if "503" in error_msg or "overloaded" in error_msg.lower() or "UNAVAILABLE" in error_msg:
+                await processing_msg.edit_text(
+                    "⚠️ *Server Busy*\n\n"
+                    "The AI server is currently overloaded due to high traffic.\n"
+                    "Please try sending the screenshot again in 1-2 minutes.",
+                    parse_mode='Markdown'
+                )
+            else:
+                await processing_msg.edit_text(
+                    "❌ Failed to process screenshot.\n\n"
+                    f"Error: {result.get('error')}\n\n"
+                    "Please send a clearer screenshot.\n"
+                    "If the issue persists, contact: @Hex_April"
+                )
             return
         
         # Extract data
