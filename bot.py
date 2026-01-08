@@ -8,6 +8,8 @@ import logging
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from dotenv import load_dotenv
+from pymongo import MongoClient
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -21,6 +23,59 @@ logger = logging.getLogger(__name__)
 
 # Bot configuration
 BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb+srv://dharani3318s_db_user:HslGkpCG93kO3KC6@userdb.jjgrkqq.mongodb.net/')
+DATABASE_NAME = 'autotyper_db'
+
+
+def get_database():
+    """Get MongoDB connection"""
+    try:
+        client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
+        db = client[DATABASE_NAME]
+        db.command('ping')
+        return db
+    except Exception as e:
+        logger.error(f"MongoDB connection error: {e}")
+        return None
+
+
+def check_utr_exists(utr: str) -> dict:
+    """Check if UTR already exists in database"""
+    db = get_database()
+    if db is None:
+        return {"exists": False, "error": "Database unavailable"}
+    
+    transactions = db["transactions"]
+    existing = transactions.find_one({"utr": utr})
+    
+    if existing:
+        return {
+            "exists": True,
+            "user": existing.get("telegram_user"),
+            "date": existing.get("created_at"),
+            "credits": existing.get("credits")
+        }
+    return {"exists": False}
+
+
+def save_transaction(utr: str, amount: float, credits: int, sender: str, telegram_user: str, telegram_id: int):
+    """Save transaction to database"""
+    db = get_database()
+    if db is None:
+        return False
+    
+    transactions = db["transactions"]
+    transactions.insert_one({
+        "utr": utr,
+        "amount": amount,
+        "credits": credits,
+        "sender": sender,
+        "telegram_user": telegram_user,
+        "telegram_id": telegram_id,
+        "created_at": datetime.utcnow(),
+        "status": "license_generated"
+    })
+    return True
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -70,7 +125,7 @@ Open CodePaste app → Buy Credits → Enter license key
 • License expired? → Contact support
 • Payment not detected? → Send clearer screenshot
 
-Need help? Contact: @YourSupportUsername
+Need help? Contact: @Hex_April
     """
     await update.message.reply_text(help_message, parse_mode='Markdown')
 
@@ -131,9 +186,26 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
         
+        # ===== CHECK FOR DUPLICATE UTR =====
+        if utr:
+            utr_check = check_utr_exists(utr)
+            if utr_check.get('exists'):
+                # This UTR has already been used!
+                await processing_msg.edit_text(
+                    "🚫 *Duplicate Payment Detected!*\n\n"
+                    f"This UTR (`{utr}`) has already been used.\n\n"
+                    f"Previously used by: @{utr_check.get('user', 'Unknown')}\n"
+                    f"Credits awarded: {utr_check.get('credits', 0):,}\n\n"
+                    "⚠️ Each payment can only be redeemed once.\n"
+                    "Please make a new payment to get credits.",
+                    parse_mode='Markdown'
+                )
+                logger.warning(f"Duplicate UTR attempt: {utr} by user {user.username}")
+                return
+        
         # Success - show extracted data
         await processing_msg.edit_text(
-            "✅ *Payment Detected!*\n\n"
+            "✅ *Payment Verified!*\n\n"
             f"💰 Amount: ₹{amount}\n"
             f"🔢 UTR: `{utr}`\n"
             f"👤 Sender: {sender}\n"
@@ -147,10 +219,20 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         credits = calculate_credits(amount)
         license_key = generate_license_key(amount, utr, credits)
         
+        # ===== SAVE TRANSACTION TO DATABASE =====
+        save_transaction(
+            utr=utr,
+            amount=amount,
+            credits=credits,
+            sender=sender or "Unknown",
+            telegram_user=user.username or str(user.id),
+            telegram_id=user.id
+        )
+        
         # Send license key to user - send key separately for easy copying
         await update.message.reply_text(
             "🎉 *License Key Generated!*\n\n"
-            f"⭐ Credits: {credits}\n"
+            f"⭐ Credits: {credits:,}\n"
             f"⏰ Valid for: 5 minutes\n\n"
             "*Copy the key from the next message:*",
             parse_mode='Markdown'
@@ -169,7 +251,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode='Markdown'
         )
         
-        logger.info(f"License key generated for {user.username}: {credits} credits")
+        logger.info(f"License key generated for {user.username}: {credits} credits, UTR: {utr}")
         
     except Exception as e:
         logger.error(f"Error processing photo: {e}")
