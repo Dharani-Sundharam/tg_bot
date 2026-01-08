@@ -3,5 +3,5 @@ pymongo
 python-dotenv
 Pillow
 pytesseract
-opencv-python
+opencv-python-headless
 cryptography
