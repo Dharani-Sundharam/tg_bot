@@ -161,7 +161,8 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await processing_msg.edit_text(
                 "❌ Failed to process screenshot.\n\n"
                 f"Error: {result.get('error')}\n\n"
-                "Please send a clearer screenshot."
+                "Please send a clearer screenshot.\n"
+                "If the issue persists, contact: @Hex_April"
             )
             return
         
@@ -181,7 +182,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"• Sender: {sender if sender else 'Not found'}\n"
                 f"• Confidence: {confidence:.0%}\n\n"
                 "🔍 This needs manual review.\n"
-                "Please send a clearer screenshot or contact support.",
+                "Please send a clearer screenshot or contact support: @Hex_April",
                 parse_mode='Markdown'
             )
             return
@@ -197,7 +198,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     f"Previously used by: @{utr_check.get('user', 'Unknown')}\n"
                     f"Credits awarded: {utr_check.get('credits', 0):,}\n\n"
                     "⚠️ Each payment can only be redeemed once.\n"
-                    "Please make a new payment to get credits.",
+                    "If you believe this is an error, contact: @Hex_April",
                     parse_mode='Markdown'
                 )
                 logger.warning(f"Duplicate UTR attempt: {utr} by user {user.username}")
@@ -212,7 +213,8 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "❌ The payment amount could not be detected.\n"
                 "Please send a clearer screenshot showing:\n"
                 "• The payment amount (₹10, ₹49, ₹99)\n"
-                "• 'Paid' or 'Sent' text near the amount",
+                "• 'Paid' or 'Sent' text near the amount\n\n"
+                "Need help? Contact: @Hex_April",
                 parse_mode='Markdown'
             )
             return
