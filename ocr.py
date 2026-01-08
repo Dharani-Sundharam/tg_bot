@@ -145,7 +145,6 @@ Return ONLY valid JSON: {"amount": 100, "utr": "123456789012", "sender": "Name"}
                     ]
                 }
             ],
-            ],
             temperature=0.1,
             max_tokens=500
         )
