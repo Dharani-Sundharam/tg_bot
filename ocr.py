@@ -149,7 +149,8 @@ def extract_amount(text: str) -> Optional[float]:
     # FALLBACK: Look for known price points (10, 49, 99) as standalone numbers
     # These are the only valid amounts, so if we find them, they're likely the payment
     # IMPORTANT: Make sure we don't match inside UTR (12-digit number)
-    known_amounts = [99, 49, 10]  # Check larger amounts first
+    # Check smaller amounts first (most common purchases)
+    known_amounts = [10, 49, 99]  # Check smaller amounts first!
     for known in known_amounts:
         # Look for the number NOT surrounded by other digits (to avoid UTR matches)
         patterns = [
