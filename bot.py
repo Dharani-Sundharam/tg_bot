@@ -167,15 +167,20 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     "⚠️ *Server Busy / Quota Limit*\n\n"
                     "The AI server is currently at its limit or overloaded.\n"
                     "Please try sending the screenshot again in a few minutes.\n\n"
-                    "If the issue persists, we may be waiting for more API keys: @Hex_April",
+                    "If the issue persists, please DM your screenshot to: @Hex_April",
                     parse_mode='Markdown'
                 )
             else:
+                # IMPORTANT: Safety Fallback
+                # If anything else goes wrong (OCR failed, unknown error),
+                # explicitly tell user to DM the screenshot for manual help.
                 await processing_msg.edit_text(
-                    "❌ Failed to process screenshot.\n\n"
-                    f"Error: {result.get('error')}\n\n"
-                    "Please send a clearer screenshot.\n"
-                    "If the issue persists, contact: @Hex_April"
+                    "❌ *Verification Failed*\n\n"
+                    "I couldn't verify this screenshot automatically.\n\n"
+                    "🔸 *Action Required:*\n"
+                    "Please **Forward this screenshot** directly to: @Hex_April\n"
+                    "They will manually verify it and grant your credits!",
+                    parse_mode='Markdown'
                 )
             return
         
