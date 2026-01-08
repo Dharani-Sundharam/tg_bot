@@ -109,7 +109,7 @@ def calculate_credits(amount: float) -> int:
     elif amount == 10:
         return 1000
     else:
-        return 0:
+        return 0
 
 
 if __name__ == '__main__':
