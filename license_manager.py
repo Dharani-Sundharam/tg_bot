@@ -100,6 +100,8 @@ def decrypt_license_key(license_key: str) -> Optional[Dict]:
 
 def calculate_credits(amount: float) -> int:
     """Calculate credits based on payment amount"""
+    if amount is None:
+        return 0
     if amount >= 99:
         return 13000
     elif amount >= 49:
