@@ -3,3 +3,4 @@ pymongo
 python-dotenv
 cryptography
 google-genai
+groq

@@ -85,8 +85,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 I verify payments and generate license keys for CodePaste.
 
+💡 *Recommended:* Please use **Google Pay (GPay)** for the best results.
+
 *How it works:*
-1. Send me a screenshot of your payment confirmation
+1. Send me a screenshot of your payment confirmation (GPay preferred)
 2. I'll verify the details and generate your license key
 3. Enter the key in CodePaste app to get credits
 
@@ -105,11 +107,14 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     help_message = """
 📖 *How to Verify Payment*
 
+✅ *Best Results:* Use **Google Pay (GPay)** for instant verification.
+
 *Step 1: Send Screenshot*
 Send a clear screenshot of your payment showing:
 • Payment amount
 • UTR/Transaction ID
 • Sender name
+• *Recommendation:* Use GPay for faster processing.
 
 *Step 2: Get License Key*
 I'll verify the screenshot and send you a license key.
@@ -120,7 +125,7 @@ Open CodePaste app → Buy Credits → Enter license key
 
 *Troubleshooting:*
 • Screenshot blurry? → I'll ask for manual review
-• Payment not detected? → Send clearer screenshot
+• Payment not detected? → Send clearer screenshot (GPay recommended)
 
 Need help? Contact: @Hex_April
     """
@@ -156,12 +161,13 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         if not result['success']:
             error_msg = result.get('error', '')
-            # Check for specific overload/server busy errors
-            if "503" in error_msg or "overloaded" in error_msg.lower() or "UNAVAILABLE" in error_msg:
+            # Check for specific overload/rate limit/quota errors
+            if any(err in error_msg for err in ["503", "429", "overloaded", "UNAVAILABLE", "RESOURCE_EXHAUSTED"]):
                 await processing_msg.edit_text(
-                    "⚠️ *Server Busy*\n\n"
-                    "The AI server is currently overloaded due to high traffic.\n"
-                    "Please try sending the screenshot again in 1-2 minutes.",
+                    "⚠️ *Server Busy / Quota Limit*\n\n"
+                    "The AI server is currently at its limit or overloaded.\n"
+                    "Please try sending the screenshot again in a few minutes.\n\n"
+                    "If the issue persists, we may be waiting for more API keys: @Hex_April",
                     parse_mode='Markdown'
                 )
             else:
