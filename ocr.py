@@ -146,6 +146,20 @@ def extract_amount(text: str) -> Optional[float]:
             except ValueError:
                 continue
     
+    # FALLBACK: Look for known price points (10, 49, 99) as standalone numbers
+    # These are the only valid amounts, so if we find them, they're likely the payment
+    known_amounts = [99, 49, 10]  # Check larger amounts first
+    for known in known_amounts:
+        # Look for the number with word boundaries or surrounded by whitespace/symbols
+        patterns = [
+            rf'\b{known}(?:\.00?)?\b',  # 10 or 10.00 or 10.0
+            rf'[₹$€]\s*{known}(?:\.00?)?',  # ₹10
+            rf'{known}(?:\.00?)?\s*(?:rs|rupee|inr)',  # 10 Rs
+        ]
+        for pattern in patterns:
+            if re.search(pattern, text, re.IGNORECASE):
+                return float(known)
+    
     return None
 
 
