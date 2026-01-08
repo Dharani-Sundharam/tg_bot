@@ -34,10 +34,12 @@ def generate_license_key(amount: float, utr: str, credits: int) -> str:
         Short encrypted license key (e.g., "CP-ABC123XYZ")
     """
     # Create minimal license data (only essential info)
+    # Use time.time() for consistent UNIX timestamp (always UTC)
+    import time
     license_data = {
         'u': utr,  # UTR
         'c': credits,  # Credits
-        'e': int((datetime.utcnow() + timedelta(minutes=5)).timestamp())  # Expiry
+        'e': int(time.time() + 300)  # Expiry: current time + 5 minutes (300 seconds)
     }
     
     # Convert to JSON and encrypt

@@ -147,19 +147,25 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         credits = calculate_credits(amount)
         license_key = generate_license_key(amount, utr, credits)
         
-        # Send license key to user
+        # Send license key to user - send key separately for easy copying
         await update.message.reply_text(
             "🎉 *License Key Generated!*\n\n"
-            f"🔑 Your License Key:\n"
-            f"`{license_key}`\n\n"
             f"⭐ Credits: {credits}\n"
             f"⏰ Valid for: 5 minutes\n\n"
+            "*Copy the key from the next message:*",
+            parse_mode='Markdown'
+        )
+        
+        # Send license key as plain text (no markdown) for easy copying
+        await update.message.reply_text(license_key)
+        
+        await update.message.reply_text(
             "*How to redeem:*\n"
             "1. Open CodePaste desktop app\n"
             "2. Click 'Buy Credits'\n"
-            "3. Enter this license key\n"
+            "3. Paste the license key above\n"
             "4. Credits will be added instantly!\n\n"
-            "⚠️ Key expires in 5 minutes. Use it now!",
+            "⚠️ Key expires in 5 minutes!",
             parse_mode='Markdown'
         )
         
