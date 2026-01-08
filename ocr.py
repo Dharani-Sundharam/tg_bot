@@ -10,9 +10,12 @@ import numpy as np
 from PIL import Image
 import pytesseract
 from typing import Dict, Optional
+import platform
 
-# Configure Tesseract path (Windows) - Uncomment if needed
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+# Configure Tesseract path based on OS
+if platform.system() == 'Windows':
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+# On Linux (Railway), tesseract is in PATH, no configuration needed
 
 # Enhanced regex patterns for Indian payment apps
 PATTERNS = {
