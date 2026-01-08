@@ -290,8 +290,11 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error processing photo: {e}")
         await processing_msg.edit_text(
-            "❌ An error occurred while processing your screenshot.\n\n"
-            "Please try again or contact support."
+            "❌ *An error occurred while processing your screenshot.*\n\n"
+            "Please try again in a few minutes.\n"
+            "If the issue persists, please DM your screenshot to: @Hex_April\n"
+            "Reference Error: `Processing Failed`",
+            parse_mode='Markdown'
         )
 
 

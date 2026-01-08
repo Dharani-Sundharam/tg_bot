@@ -40,7 +40,7 @@ GEMINI_MODEL = "gemini-1.5-flash"
 
 # Groq Configuration
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
-GROQ_MODEL = "llama-3.2-11b-vision-preview"
+GROQ_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 
 
 def get_mime_type(image_path: str) -> str:
@@ -145,9 +145,9 @@ Return ONLY valid JSON: {"amount": 100, "utr": "123456789012", "sender": "Name"}
                     ]
                 }
             ],
+            ],
             temperature=0.1,
-            max_tokens=500,
-            response_format={"type": "json_object"}
+            max_tokens=500
         )
         
         text_response = completion.choices[0].message.content
