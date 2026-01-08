@@ -185,11 +185,23 @@ def process_payment_screenshot(image_path: str) -> Dict:
 Return ONLY valid JSON in this exact format (no markdown, no explanation):
 {"amount": <number or null>, "utr": "<12-digit string or null>", "sender": "<string or null>", "confidence": <0.0 to 1.0>}"""
 
-    last_error = None
+    errors = []
     
-    # 1. Try Gemini (Primary) - Iterate keys
+    # 1. Try Groq (Primary) - Llama 4 Scout
+    if GROQ_API_KEY:
+        try:
+            # print("Attempting Groq (Llama 4)...") 
+            return process_with_groq(image_path)
+        except Exception as e:
+            err_msg = f"Groq Error: {str(e)}"
+            errors.append(err_msg)
+            # print(f"Groq failed: {e}. Falling back to Gemini...")
+
+    # 2. Try Gemini (Fallback) - Iterate keys
     keys_to_try = GEMINI_API_KEYS.copy()
     random.shuffle(keys_to_try)
+    
+    gemini_errors = []
     
     for api_key in keys_to_try:
         try:
@@ -209,7 +221,7 @@ Return ONLY valid JSON in this exact format (no markdown, no explanation):
 
         except Exception as e:
             error_str = str(e)
-            last_error = error_str
+            gemini_errors.append(error_str)
             # Only retry for overload/quota errors
             if any(x in error_str for x in ["503", "429", "overloaded", "RESOURCE_EXHAUSTED"]):
                 continue # Try next key
@@ -217,18 +229,11 @@ Return ONLY valid JSON in this exact format (no markdown, no explanation):
                 # If it's a content safety/other error, continue but log it?
                 continue
 
-    # 2. Key Exhaustion / Fallback -> Try Groq
-    if GROQ_API_KEY:
-        try:
-            print("Gemini keys exhausted/failed. Falling back to Groq Llama 3.2...")
-            return process_with_groq(image_path)
-        except Exception as e:
-            last_error = f"{last_error} | Groq Error: {str(e)}"
-
     # If all failed
+    all_errors = " | ".join(errors + [f"Gemini Defaults Failed ({len(gemini_errors)} keys tried)"])
     return {
         'success': False,
-        'error': f'All OCR providers failed: {last_error}',
+        'error': f'All OCR providers failed: {all_errors}',
         'confidence': 0.0
     }
 
