@@ -24,6 +24,14 @@ PATTERNS = {
         r'Rs\.?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)',  # Rs.10 or Rs 1000
         r'INR\s*(\d+(?:,\d{3})*(?:\.\d{2})?)',  # INR 10
         r'Amount[:\s]+₹?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)',  # Amount: ₹10
+        r'Paid\s*₹?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)',  # Paid ₹10
+        r'Received\s*₹?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)',  # Received ₹10
+        r'Total[:\s]+₹?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)',  # Total: 10
+        r'[€$£₹]\s*(\d+(?:,\d{3})*(?:\.\d{2})?)',  # Any currency symbol
+        # GPay specific: look for numbers near "paid" or "sent"
+        r'(?:paid|sent|received|amount|total)\D{0,10}(\d{2,6}(?:\.\d{2})?)',  # paid ... 10.00
+        # Fallback: standalone amounts like "10.00" or "99" near payment keywords
+        r'(\d{2,6}(?:\.\d{2})?)\s*(?:paid|sent|received|debited|credited)',  # 10.00 paid
     ],
     'utr': [
         # GPay/PhonePe UPI transaction ID (12 digits)
@@ -221,7 +229,8 @@ def process_payment_screenshot(image_path: str) -> Dict:
     confidence = calculate_confidence(amount, utr, sender)
     
     # Determine if manual review is needed
-    needs_review = confidence < 0.7
+    # If we have UTR, we can proceed (UTR is most important for verification)
+    needs_review = confidence < 0.4 or utr is None
     
     return {
         'success': True,
