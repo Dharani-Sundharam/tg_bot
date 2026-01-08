@@ -11,7 +11,19 @@ from google import genai
 from google.genai import types
 
 # Gemini API configuration
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'AIzaSyAL9Qxf4u6afJ0lLiM9-JK6mTeAJ4TtYwk')
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Gemini API configuration
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+if not GEMINI_API_KEY:
+    # Fallback to hardcoded key only for local testing if env not set, 
+    # but prints a warning. Ideally should strict fail in production.
+    # User requested to keep it as env var.
+    raise ValueError("GEMINI_API_KEY not found in environment variables")
+    
 GEMINI_MODEL = "gemini-2.5-flash"
 
 
