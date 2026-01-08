@@ -102,14 +102,14 @@ def calculate_credits(amount: float) -> int:
     """Calculate credits based on payment amount"""
     if amount is None:
         return 0
-    if amount >= 99:
+    if amount == 99:
         return 13000
-    elif amount >= 49:
+    elif amount == 49:
         return 7000
-    elif amount >= 10:
+    elif amount == 10:
         return 1000
     else:
-        return int(amount * 100)
+        return 0:
 
 
 if __name__ == '__main__':

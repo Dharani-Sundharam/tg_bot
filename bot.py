@@ -203,6 +203,20 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 logger.warning(f"Duplicate UTR attempt: {utr} by user {user.username}")
                 return
         
+        # Check if amount was detected
+        if not amount:
+            await processing_msg.edit_text(
+                "⚠️ *Could Not Detect Amount*\n\n"
+                f"🔢 UTR: `{utr}`\n"
+                f"👤 Sender: {sender}\n\n"
+                "❌ The payment amount could not be detected.\n"
+                "Please send a clearer screenshot showing:\n"
+                "• The payment amount (₹10, ₹49, ₹99)\n"
+                "• 'Paid' or 'Sent' text near the amount",
+                parse_mode='Markdown'
+            )
+            return
+        
         # Success - show extracted data
         await processing_msg.edit_text(
             "✅ *Payment Verified!*\n\n"
