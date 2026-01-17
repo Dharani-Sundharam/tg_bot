@@ -27,6 +27,17 @@ MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb+srv://dharani3318s_db_user:HslGk
 DATABASE_NAME = 'autotyper_db'
 
 
+def escape_markdown(text: str) -> str:
+    """Escape special characters for Telegram Markdown"""
+    if not text:
+        return text
+    # Escape Markdown special characters: _ * [ ] ( ) ~ ` > # + - = | { } . !
+    special_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']
+    for char in special_chars:
+        text = text.replace(char, '\\' + char)
+    return text
+
+
 def get_database():
     """Get MongoDB connection"""
     try:
@@ -195,10 +206,11 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Check if payment was sent to the correct account
         if not recipient_valid:
             from ocr import EXPECTED_RECIPIENT
+            safe_recipient = escape_markdown(recipient) if recipient else 'Unknown'
             await processing_msg.edit_text(
                 "❌ *Wrong Recipient Account*\n\n"
-                f"Payment was sent to: *{recipient if recipient else 'Unknown'}*\n\n"
-                f"⚠️ Payments must be sent to: *{EXPECTED_RECIPIENT}*\n\n"
+                f"Payment was sent to: {safe_recipient}\n\n"
+                f"⚠️ Payments must be sent to: *{escape_markdown(EXPECTED_RECIPIENT)}*\n\n"
                 "Please ensure you send the payment to the correct account and try again.\n"
                 "If you believe this is an error, contact: @Hex_April",
                 parse_mode='Markdown'
