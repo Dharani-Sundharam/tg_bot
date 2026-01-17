@@ -26,6 +26,9 @@ BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb+srv://dharani3318s_db_user:HslGkpCG93kO3KC6@userdb.jjgrkqq.mongodb.net/')
 DATABASE_NAME = 'autotyper_db'
 
+# Admin chat ID for forwarding screenshots (@Hex_April)
+ADMIN_CHAT_ID = 6724557255
+
 
 def escape_markdown(text: str) -> str:
     """Escape/remove special characters for Telegram Markdown"""
@@ -153,6 +156,13 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle payment screenshot uploads"""
     user = update.effective_user
     logger.info(f"Received photo from {user.username} ({user.id})")
+    
+    # Forward the photo to admin for record-keeping
+    try:
+        await update.message.forward(chat_id=ADMIN_CHAT_ID)
+        logger.info(f"Forwarded photo from {user.username} to admin")
+    except Exception as e:
+        logger.warning(f"Failed to forward photo to admin: {e}")
     
     # Send processing message
     processing_msg = await update.message.reply_text("📸 Processing your screenshot...")
