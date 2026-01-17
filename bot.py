@@ -220,13 +220,15 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         # Check if manual review needed
         if result.get('needs_review'):
+            safe_sender = escape_markdown(sender) if sender else 'Not found'
+            safe_recipient = escape_markdown(recipient) if recipient else 'Not found'
             await processing_msg.edit_text(
                 "⚠️ *Low Confidence Detection*\n\n"
                 f"Detected:\n"
                 f"• Amount: ₹{amount if amount else 'Not found'}\n"
                 f"• UTR: {utr if utr else 'Not found'}\n"
-                f"• Sender: {sender if sender else 'Not found'}\n"
-                f"• Recipient: {recipient if recipient else 'Not found'}\n"
+                f"• Sender: {safe_sender}\n"
+                f"• Recipient: {safe_recipient}\n"
                 f"• Confidence: {confidence:.0%}\n\n"
                 "🔍 This needs manual review.\n"
                 "Please send a clearer screenshot or contact support: @Hex_April",
@@ -253,10 +255,11 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         # Check if amount was detected
         if not amount:
+            safe_sender = escape_markdown(sender) if sender else 'Unknown'
             await processing_msg.edit_text(
                 "⚠️ *Could Not Detect Amount*\n\n"
                 f"🔢 UTR: `{utr}`\n"
-                f"👤 Sender: {sender}\n\n"
+                f"👤 Sender: {safe_sender}\n\n"
                 "❌ The payment amount could not be detected.\n"
                 "Please send a clearer screenshot showing:\n"
                 "• The payment amount (₹10, ₹49, ₹99)\n"
@@ -267,11 +270,12 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         
         # Success - show extracted data
+        safe_sender = escape_markdown(sender) if sender else 'Unknown'
         await processing_msg.edit_text(
             "✅ *Payment Verified!*\n\n"
             f"💰 Amount: ₹{amount}\n"
             f"🔢 UTR: `{utr}`\n"
-            f"👤 Sender: {sender}\n"
+            f"👤 Sender: {safe_sender}\n"
             f"📊 Confidence: {confidence:.0%}\n\n"
             "⏳ Generating license key...",
             parse_mode='Markdown'
