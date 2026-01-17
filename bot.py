@@ -28,13 +28,19 @@ DATABASE_NAME = 'autotyper_db'
 
 
 def escape_markdown(text: str) -> str:
-    """Escape special characters for Telegram Markdown"""
+    """Escape/remove special characters for Telegram Markdown"""
     if not text:
         return text
-    # Escape Markdown special characters: _ * [ ] ( ) ~ ` > # + - = | { } . !
-    special_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']
-    for char in special_chars:
-        text = text.replace(char, '\\' + char)
+    # For Telegram Markdown v1, just remove problematic characters
+    # These characters cause parsing issues: _ * ` [ ]
+    import re
+    # Replace underscores with spaces, remove other special markdown chars
+    text = str(text)
+    text = text.replace('_', ' ')
+    text = text.replace('*', '')
+    text = text.replace('`', "'")
+    text = text.replace('[', '(')
+    text = text.replace(']', ')')
     return text
 
 
