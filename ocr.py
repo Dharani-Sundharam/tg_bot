@@ -42,6 +42,9 @@ GEMINI_MODEL = "gemini-1.5-flash"
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 GROQ_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 
+# Expected recipient for payment verification
+EXPECTED_RECIPIENT = "Gopalakrishnan P"
+
 
 def get_mime_type(image_path: str) -> str:
     """Get MIME type based on file extension"""
@@ -86,6 +89,7 @@ def normalize_result(data: Dict, confidence: float = 0.8) -> Dict:
     amount = data.get('amount')
     utr = data.get('utr')
     sender = data.get('sender')
+    recipient = data.get('recipient')
     
     # Ensure amount is a number
     if amount is not None:
@@ -100,6 +104,14 @@ def normalize_result(data: Dict, confidence: float = 0.8) -> Dict:
         if len(utr) != 12:
             utr = None
     
+    # Verify recipient matches expected account
+    recipient_valid = False
+    if recipient:
+        # Normalize for comparison (case-insensitive, handle extra spaces)
+        normalized_recipient = ' '.join(recipient.strip().lower().split())
+        normalized_expected = ' '.join(EXPECTED_RECIPIENT.strip().lower().split())
+        recipient_valid = normalized_recipient == normalized_expected
+    
     # Determine if needs review
     needs_review = confidence < 0.7 or amount is None or utr is None
     
@@ -108,6 +120,8 @@ def normalize_result(data: Dict, confidence: float = 0.8) -> Dict:
         'amount': amount,
         'utr': utr,
         'sender': sender,
+        'recipient': recipient,
+        'recipient_valid': recipient_valid,
         'confidence': confidence,
         'needs_review': needs_review
     }
@@ -125,9 +139,10 @@ def process_with_groq(image_path: str) -> Dict:
         prompt = """Analyze this Indian UPI payment screenshot and extract these details in JSON format:
 1. amount (number)
 2. utr (12-digit transaction ID string)
-3. sender (name string)
+3. sender (name of the person who SENT the payment)
+4. recipient (name of the person who RECEIVED the payment - the payee/beneficiary)
 
-Return ONLY valid JSON: {"amount": 100, "utr": "123456789012", "sender": "Name"}"""
+Return ONLY valid JSON: {"amount": 100, "utr": "123456789012", "sender": "Sender Name", "recipient": "Recipient Name"}"""
 
         completion = client.chat.completions.create(
             model=GROQ_MODEL,
@@ -179,10 +194,11 @@ def process_payment_screenshot(image_path: str) -> Dict:
 
 1. **Amount**: The payment amount in Indian Rupees (just the number, e.g., 10, 49, 99)
 2. **UTR/Transaction ID**: The 12-digit UPI transaction ID
-3. **Sender Name**: The name of the person who sent the payment
+3. **Sender Name**: The name of the person who SENT the payment
+4. **Recipient Name**: The name of the person who RECEIVED the payment (the payee/beneficiary)
 
 Return ONLY valid JSON in this exact format (no markdown, no explanation):
-{"amount": <number or null>, "utr": "<12-digit string or null>", "sender": "<string or null>", "confidence": <0.0 to 1.0>}"""
+{"amount": <number or null>, "utr": "<12-digit string or null>", "sender": "<string or null>", "recipient": "<string or null>", "confidence": <0.0 to 1.0>}"""
 
     errors = []
     

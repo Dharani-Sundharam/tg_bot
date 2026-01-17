@@ -188,7 +188,23 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         amount = result.get('amount')
         utr = result.get('utr')
         sender = result.get('sender')
+        recipient = result.get('recipient')
+        recipient_valid = result.get('recipient_valid', False)
         confidence = result.get('confidence', 0)
+        
+        # Check if payment was sent to the correct account
+        if not recipient_valid:
+            from ocr import EXPECTED_RECIPIENT
+            await processing_msg.edit_text(
+                "❌ *Wrong Recipient Account*\n\n"
+                f"Payment was sent to: *{recipient if recipient else 'Unknown'}*\n\n"
+                f"⚠️ Payments must be sent to: *{EXPECTED_RECIPIENT}*\n\n"
+                "Please ensure you send the payment to the correct account and try again.\n"
+                "If you believe this is an error, contact: @Hex_April",
+                parse_mode='Markdown'
+            )
+            logger.warning(f"Wrong recipient: {recipient} (expected: {EXPECTED_RECIPIENT}) by user {user.username}")
+            return
         
         # Check if manual review needed
         if result.get('needs_review'):
@@ -198,6 +214,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"• Amount: ₹{amount if amount else 'Not found'}\n"
                 f"• UTR: {utr if utr else 'Not found'}\n"
                 f"• Sender: {sender if sender else 'Not found'}\n"
+                f"• Recipient: {recipient if recipient else 'Not found'}\n"
                 f"• Confidence: {confidence:.0%}\n\n"
                 "🔍 This needs manual review.\n"
                 "Please send a clearer screenshot or contact support: @Hex_April",
