@@ -212,33 +212,28 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Check if payment was sent to the correct account
         if not recipient_valid:
             from ocr import EXPECTED_RECIPIENT
-            safe_recipient = escape_markdown(recipient) if recipient else 'Unknown'
             await processing_msg.edit_text(
-                "❌ *Wrong Recipient Account*\n\n"
-                f"Payment was sent to: {safe_recipient}\n\n"
-                f"⚠️ Payments must be sent to: *{escape_markdown(EXPECTED_RECIPIENT)}*\n\n"
+                "❌ Wrong Recipient Account\n\n"
+                f"Payment was sent to: {recipient if recipient else 'Unknown'}\n\n"
+                f"⚠️ Payments must be sent to: {EXPECTED_RECIPIENT}\n\n"
                 "Please ensure you send the payment to the correct account and try again.\n"
-                "If you believe this is an error, contact: @Hex_April",
-                parse_mode='Markdown'
+                "If you believe this is an error, contact: @Hex_April"
             )
             logger.warning(f"Wrong recipient: {recipient} (expected: {EXPECTED_RECIPIENT}) by user {user.username}")
             return
         
         # Check if manual review needed
         if result.get('needs_review'):
-            safe_sender = escape_markdown(sender) if sender else 'Not found'
-            safe_recipient = escape_markdown(recipient) if recipient else 'Not found'
             await processing_msg.edit_text(
-                "⚠️ *Low Confidence Detection*\n\n"
+                "⚠️ Low Confidence Detection\n\n"
                 f"Detected:\n"
                 f"• Amount: ₹{amount if amount else 'Not found'}\n"
                 f"• UTR: {utr if utr else 'Not found'}\n"
-                f"• Sender: {safe_sender}\n"
-                f"• Recipient: {safe_recipient}\n"
+                f"• Sender: {sender if sender else 'Not found'}\n"
+                f"• Recipient: {recipient if recipient else 'Not found'}\n"
                 f"• Confidence: {confidence:.0%}\n\n"
                 "🔍 This needs manual review.\n"
-                "Please send a clearer screenshot or contact support: @Hex_April",
-                parse_mode='Markdown'
+                "Please send a clearer screenshot or contact support: @Hex_April"
             )
             return
         
@@ -261,30 +256,26 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         # Check if amount was detected
         if not amount:
-            safe_sender = escape_markdown(sender) if sender else 'Unknown'
             await processing_msg.edit_text(
-                "⚠️ *Could Not Detect Amount*\n\n"
-                f"🔢 UTR: `{utr}`\n"
-                f"👤 Sender: {safe_sender}\n\n"
+                "⚠️ Could Not Detect Amount\n\n"
+                f"🔢 UTR: {utr}\n"
+                f"👤 Sender: {sender}\n\n"
                 "❌ The payment amount could not be detected.\n"
                 "Please send a clearer screenshot showing:\n"
                 "• The payment amount (₹10, ₹49, ₹99)\n"
                 "• 'Paid' or 'Sent' text near the amount\n\n"
-                "Need help? Contact: @Hex_April",
-                parse_mode='Markdown'
+                "Need help? Contact: @Hex_April"
             )
             return
         
         # Success - show extracted data
-        safe_sender = escape_markdown(sender) if sender else 'Unknown'
         await processing_msg.edit_text(
-            "✅ *Payment Verified!*\n\n"
+            "✅ Payment Verified!\n\n"
             f"💰 Amount: ₹{amount}\n"
-            f"🔢 UTR: `{utr}`\n"
-            f"👤 Sender: {safe_sender}\n"
+            f"🔢 UTR: {utr}\n"
+            f"👤 Sender: {sender}\n"
             f"📊 Confidence: {confidence:.0%}\n\n"
-            "⏳ Generating license key...",
-            parse_mode='Markdown'
+            "⏳ Generating license key..."
         )
         
         # Generate license key
@@ -329,11 +320,10 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Error processing photo: {e}")
         await processing_msg.edit_text(
-            "❌ *An error occurred while processing your screenshot.*\n\n"
+            "❌ An error occurred while processing your screenshot.\n\n"
             "Please try again in a few minutes.\n"
             "If the issue persists, please DM your screenshot to: @Hex_April\n"
-            "Reference Error: `Processing Failed`",
-            parse_mode='Markdown'
+            "Reference Error: Processing Failed"
         )
 
 
