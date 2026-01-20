@@ -221,15 +221,13 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         # Check if payment was sent to the correct account
         if not recipient_valid:
-            from ocr import EXPECTED_RECIPIENT
             await processing_msg.edit_text(
                 "❌ Wrong Recipient Account\n\n"
                 f"Payment was sent to: {recipient if recipient else 'Unknown'}\n\n"
-                f"⚠️ Payments must be sent to: {EXPECTED_RECIPIENT}\n\n"
-                "Please ensure you send the payment to the correct account and try again.\n"
+                "Please ensure you send the payment to the correct OR code displayed and try again.\n"
                 "If you believe this is an error, contact: @Hex_April"
             )
-            logger.warning(f"Wrong recipient: {recipient} (expected: {EXPECTED_RECIPIENT}) by user {user.username}")
+            logger.warning(f"Wrong recipient: {recipient} by user {user.username}")
             return
         
         # Check if manual review needed
@@ -324,6 +322,28 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "⚠️ Key expires in 5 minutes!",
             parse_mode='Markdown'
         )
+        
+        # ===== NOTIFY ADMIN WITH PAYMENT DETAILS =====
+        try:
+            from datetime import datetime
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            admin_notification = (
+                "💰 NEW PAYMENT RECEIVED\n"
+                "━━━━━━━━━━━━━━━━━━━━\n\n"
+                f"🕐 Time: {current_time}\n"
+                f"👤 TG User: @{user.username or 'N/A'}\n"
+                f"🆔 TG ID: {user.id}\n"
+                f"📛 TG Name: {user.first_name or ''} {user.last_name or ''}\n\n"
+                f"💵 Amount: ₹{amount}\n"
+                f"🔢 UTR: {utr}\n"
+                f"👤 Sender (from screenshot): {sender}\n"
+                f"🎁 Credits Awarded: {credits:,}\n\n"
+                f"🔑 License Key: {license_key}"
+            )
+            await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=admin_notification)
+            logger.info(f"Admin notified about payment from {user.username}")
+        except Exception as e:
+            logger.warning(f"Failed to notify admin: {e}")
         
         logger.info(f"License key generated for {user.username}: {credits} credits, UTR: {utr}")
         
